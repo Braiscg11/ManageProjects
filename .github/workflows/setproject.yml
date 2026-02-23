@@ -25,13 +25,13 @@ jobs:
             const repoData = await github.graphql(`
               query {
                 repository(owner: "${owner}", name: "${repo}") {
-                  projectsV2(first: 10) {
+                  projects(first: 10) {
                     nodes {
                       id
                       title
                       fields(first: 50) {
                         nodes {
-                          ... on ProjectV2FieldCommon {
+                          ... on ProjectFieldCommon {
                             id
                             name
                           }

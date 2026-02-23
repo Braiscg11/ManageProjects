@@ -1,4 +1,4 @@
-name: Auto set Project field (linked project only)
+name: Auto set Project field (user project)
 
 on:
   issues:
@@ -12,19 +12,19 @@ jobs:
   update-project:
     runs-on: ubuntu-latest
     steps:
-      - name: Detect linked project and update field
+      - name: Detect linked user project and update field
         uses: actions/github-script@v7
         with:
           script: |
 
-            const org = context.repo.owner;
+            const owner = context.repo.owner; // en tu caso: braiscg11
             const repoNodeId = context.payload.repository.node_id;
             const issueNodeId = context.payload.issue.node_id;
 
-            // 1️⃣ Obtener projects de la organización
+            // 1️⃣ Obtener Projects v2 del usuario
             const projectsData = await github.graphql(`
               query {
-                organization(login: "${org}") {
+                user(login: "${owner}") {
                   projectsV2(first: 20) {
                     nodes {
                       id
@@ -53,14 +53,13 @@ jobs:
               }
             `);
 
-            const projects = projectsData.organization.projectsV2.nodes;
+            const projects = projectsData.user.projectsV2.nodes;
 
             let selectedProject = null;
             let projectFieldId = null;
 
             for (const project of projects) {
 
-              // ¿El project contiene este repo?
               const containsRepo = project.items.nodes.some(item =>
                 item.content &&
                 item.content.__typename === "Repository" &&

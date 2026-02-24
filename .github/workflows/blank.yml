@@ -19,8 +19,8 @@ jobs:
         with: 
           script: |
             const data = await github.graphql(`query {
-              user(login: "braiscg11") {
-                projects(first: 10) {
+              user(login: "Braiscg11") {
+                projectsV2(first: 10) {
                   nodes {
                     id
                   }

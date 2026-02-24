@@ -28,4 +28,22 @@ jobs:
               }
             }`);
             console.log("Datos:", data);
+            const a = await github.graphql(`query {
+                viewer {
+                  login
+                }
+              }
+            `);
+            console.log("A:", a);
+            const b = await github.graphql(`query {
+                viewer {
+                  projectsV2(first: 10) {
+                    nodes {
+                      id
+                      title
+                    }
+                  }
+                }
+            }`);
+            console.log("B:", b);
             

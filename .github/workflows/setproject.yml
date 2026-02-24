@@ -1,4 +1,4 @@
-name: Auto set Project field (linked project)
+name: Auto set Project field (Projects v2)
 
 on:
   issues:
@@ -21,17 +21,17 @@ jobs:
             const repo = context.repo.repo;
             const issueNodeId = context.payload.issue.node_id;
 
-            // 1️⃣ Obtener Projects vinculados al repo
+            // ✅ OJO: projectsV2 (no projects)
             const repoData = await github.graphql(`
               query {
                 repository(owner: "${owner}", name: "${repo}") {
-                  projects(first: 10) {
+                  projectsV2(first: 10) {
                     nodes {
                       id
                       title
                       fields(first: 50) {
                         nodes {
-                          ... on ProjectFieldCommon {
+                          ... on ProjectV2FieldCommon {
                             id
                             name
                           }
@@ -46,25 +46,24 @@ jobs:
             const projects = repoData.repository.projectsV2.nodes;
 
             if (!projects.length) {
-              core.setFailed("This repository is not linked to any Project v2.");
+              core.setFailed("Repository not linked to any Projects v2.");
               return;
             }
 
-            // Tomamos el primer project vinculado
             const selectedProject = projects[0];
 
             const field = selectedProject.fields.nodes.find(f => f.name === "Project");
 
             if (!field) {
-              core.setFailed('Field "Project" not found in linked project.');
+              core.setFailed('Field "Project" not found.');
               return;
             }
 
             const projectId = selectedProject.id;
             const projectName = selectedProject.title;
-            const projectFieldId = field.id;
+            const fieldId = field.id;
 
-            // 2️⃣ Añadir issue al project
+            // Añadir issue al project
             const addItem = await github.graphql(`
               mutation {
                 addProjectV2ItemById(input: {
@@ -80,13 +79,13 @@ jobs:
 
             const itemId = addItem.addProjectV2ItemById.item.id;
 
-            // 3️⃣ Actualizar campo tipo Text
+            // Actualizar campo Text
             await github.graphql(`
               mutation {
                 updateProjectV2ItemFieldValue(input: {
                   projectId: "${projectId}",
                   itemId: "${itemId}",
-                  fieldId: "${projectFieldId}",
+                  fieldId: "${fieldId}",
                   value: {
                     text: "${projectName}"
                   }
@@ -98,4 +97,4 @@ jobs:
               }
             `);
 
-            console.log(`Issue linked to project "${projectName}" and field updated.`);
+            console.log(`Updated field with project name: ${projectName}`);

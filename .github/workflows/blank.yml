@@ -23,7 +23,6 @@ jobs:
                 projects(first: 10) {
                   nodes {
                     id
-                    title
                   }
                 }
               }
